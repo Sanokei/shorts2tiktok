@@ -86,7 +86,7 @@
     <div class="helpbox" id="h-mode">
       Inbox mode needs only <code>video.upload</code> and runs inside a sandbox, so no review.
       <p><b>Find them on your phone, not on the web.</b> Open the TikTok mobile app, tap <b>Inbox</b> in the bottom row, open <b>System notifications</b>, and look for <i>Your content is ready</i>. That opens the normal editor where you write the caption, add sound, and post. They will not show up in TikTok Studio or on your profile until you do.</p>
-      <p>Direct mode needs <code>video.publish</code> and a reviewed app, and an unreviewed one forces every post to private.</p>
+      <p><b>Direct mode never touches the phone.</b> It needs <code>video.publish</code>, so switch the dropdown first and then press Connect TikTok again to pick up the extra scope. Until TikTok reviews your app the post is forced to <i>Only me</i>, but it is a real post on your profile, and you can switch it to public afterwards from TikTok Studio in a browser.</p>
     </div>
 
     <div id="direct-opts" hidden>
@@ -134,6 +134,7 @@
     <button class="primary" id="port" disabled>Port selected</button>
     <button class="ghost" id="stop" hidden>Stop</button>
     <span class="count" id="count"></span>
+    <label class="checkline" style="margin:0"><input type="checkbox" id="include_ported"> include ones already sent</label>
     <span class="grow"></span>
     <span class="count" id="detect"></span>
   </div>

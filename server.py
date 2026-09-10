@@ -392,10 +392,23 @@ def tiktok_upload(path, caption, cfg, log):
 
     if cfg.get("mode") == "direct":
         init_url = TT_INIT_DIRECT
+        # TikTok decides which audiences an account may post to, and an app it
+        # has not audited is allowed SELF_ONLY and nothing else. Asking for
+        # more than the account is offered is just a rejection, so clamp.
+        wanted = cfg.get("privacy_level", "SELF_ONLY")
+        try:
+            options = ((tiktok_creator_info().get("data") or {})
+                       .get("privacy_level_options") or [])
+        except ApiError:
+            options = []
+        if options and wanted not in options:
+            fallback = "SELF_ONLY" if "SELF_ONLY" in options else options[0]
+            log("%s not available on this app, posting as %s" % (wanted, fallback))
+            wanted = fallback
         body = {
             "post_info": {
                 "title": caption,
-                "privacy_level": cfg.get("privacy_level", "SELF_ONLY"),
+                "privacy_level": wanted,
                 "disable_comment": bool(cfg.get("disable_comment")),
                 "disable_duet": bool(cfg.get("disable_duet")),
                 "disable_stitch": bool(cfg.get("disable_stitch")),
@@ -599,6 +612,7 @@ class UIHandler(BaseHTTPRequestHandler):
                 tokens = cfg.pop("tokens", {})
                 cfg["secret_set"] = bool(cfg.pop("tiktok_client_secret", ""))
                 cfg["connected"] = bool(tokens.get("access_token"))
+                cfg["scopes"] = tokens.get("scope", "")
                 cfg.setdefault("redirect_uri", LOOPBACK_REDIRECT)
                 cfg["loopback_redirect"] = LOOPBACK_REDIRECT
                 cfg["ported_count"] = len(cfg.get("ported", {}))

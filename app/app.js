@@ -7,6 +7,13 @@ const FIELDS = ["youtube_api_key", "youtube_channel", "tiktok_client_key",
 let videos = [];
 let pollTimer = null;
 let currentJob = null;
+let grantedScopes = "";
+
+// Direct posting needs a scope the inbox flow never asks for, so a connection
+// made in inbox mode cannot post. Catch that before a batch starts.
+function needsReconnect() {
+  return $("mode").value === "direct" && !grantedScopes.includes("video.publish");
+}
 
 async function api(path, body) {
   const res = await fetch(path, body ? {
@@ -35,6 +42,7 @@ async function loadConfig() {
     if (el.type === "checkbox") el.checked = !!cfg[f];
     else el.value = cfg[f];
   });
+  grantedScopes = cfg.scopes || "";
   if (cfg.secret_set) $("tiktok_client_secret").placeholder = "saved, type to replace";
   $("redir").textContent = cfg.loopback_redirect;
   $("pasted").placeholder = (cfg.redirect_uri || cfg.loopback_redirect) + "?code=...";
@@ -72,6 +80,12 @@ FIELDS.forEach((f) => {
 
 $("mode").addEventListener("change", () => {
   $("direct-opts").hidden = $("mode").value !== "direct";
+  if (needsReconnect()) {
+    notice(`Direct posting needs the video.publish scope, which this sign-in does not
+      have. Press Connect TikTok again to pick it up.`);
+  } else {
+    notice("");
+  }
 });
 
 document.querySelectorAll(".help").forEach((btn) => {
@@ -162,13 +176,13 @@ function render() {
   }
   const rows = videos.map((v, i) => `
     <tr id="row-${v.id}" class="${v.ported ? "done" : ""}">
-      <td><input type="checkbox" data-i="${i}" ${v.ported ? "" : "checked"}></td>
+      <td><input type="checkbox" data-i="${i}" ${!v.ported || $("include_ported").checked ? "checked" : ""}></td>
       <td><img src="${v.thumbnail}" alt=""></td>
       <td>
         <div class="title">${escapeHtml(v.title)}</div>
         <div class="meta">${fmtDuration(v.seconds)} · ${v.views.toLocaleString()} views · ${v.published.slice(0, 10)}</div>
       </td>
-      <td class="state" id="state-${v.id}">${v.ported ? "already ported" : ""}</td>
+      <td class="state" id="state-${v.id}">${v.ported ? "already sent" : ""}</td>
     </tr>`).join("");
   $("list").innerHTML = `<table>
       <thead><tr><th></th><th></th><th>Video</th><th>Status</th></tr></thead>
@@ -178,6 +192,10 @@ function render() {
 
 $("list").addEventListener("change", (e) => {
   if (e.target.type === "checkbox") updateCount();
+});
+
+$("include_ported").addEventListener("change", () => {
+  if (videos.length) render();
 });
 
 $("list").addEventListener("click", async (e) => {
@@ -216,6 +234,11 @@ function updateCount() {
 $("port").addEventListener("click", async () => {
   const picked = selected();
   if (!picked.length) return;
+  if (needsReconnect()) {
+    notice(`Direct posting needs the video.publish scope. Press Connect TikTok again
+      to authorize it, then run this batch.`);
+    return;
+  }
   $("port").disabled = true;
   try {
     const { job } = await api("/api/port", { videos: picked });
