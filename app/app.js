@@ -195,10 +195,11 @@ function render() {
         <div class="title">${escapeHtml(v.title)}</div>
         <div class="meta">${fmtDuration(v.seconds)} · ${v.views.toLocaleString()} views · ${v.published.slice(0, 10)}</div>
       </td>
+      <td><button class="ghost save" data-id="${v.id}" data-name="${escapeHtml(v.title)}">save mp4</button></td>
       <td class="state" id="state-${v.id}">${v.ported ? "already sent" : ""}</td>
     </tr>`).join("");
   $("list").innerHTML = `<table>
-      <thead><tr><th></th><th></th><th>Video</th><th>Status</th></tr></thead>
+      <thead><tr><th></th><th></th><th>Video</th><th>File</th><th>Status</th></tr></thead>
       <tbody>${rows}</tbody></table>`;
   updateCount();
 }
@@ -212,11 +213,35 @@ $("include_ported").addEventListener("change", () => {
 });
 
 $("list").addEventListener("click", async (e) => {
-  const btn = e.target.closest(".copy");
-  if (!btn) return;
-  await navigator.clipboard.writeText(btn.dataset.caption);
-  btn.textContent = "copied";
-  setTimeout(() => { btn.textContent = "copy caption"; }, 1500);
+  const copyBtn = e.target.closest(".copy");
+  if (copyBtn) {
+    await navigator.clipboard.writeText(copyBtn.dataset.caption);
+    copyBtn.textContent = "copied";
+    setTimeout(() => { copyBtn.textContent = "copy caption"; }, 1500);
+    return;
+  }
+
+  // Fetching can take a while on a cold video, so the button carries the state.
+  const saveBtn = e.target.closest(".save");
+  if (!saveBtn) return;
+  const label = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = "fetching";
+  try {
+    const res = await fetch(`/api/download?id=${encodeURIComponent(saveBtn.dataset.id)}`);
+    if (!res.ok) throw new Error((await res.json()).error || "download failed");
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${saveBtn.dataset.name.replace(/[\\/:*?"<>|]/g, "")}.mp4`;
+    a.click();
+    URL.revokeObjectURL(url);
+    saveBtn.textContent = "saved";
+  } catch (err) {
+    saveBtn.textContent = "failed";
+    notice(err.message, "yt");
+  }
+  setTimeout(() => { saveBtn.textContent = label; saveBtn.disabled = false; }, 2000);
 });
 
 function escapeHtml(s) {

@@ -4,3 +4,5 @@ MY-SETUP.md
 downloads/
 __pycache__/
 .wrangler/
+review/raw/
+review/*.mp4

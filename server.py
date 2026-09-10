@@ -647,6 +647,11 @@ class UIHandler(BaseHTTPRequestHandler):
             if route == "/api/job":
                 job = JOBS.get((params.get("id") or [""])[0])
                 return json_response(self, job or {"error": "unknown job"})
+            if route == "/api/download":
+                video_id = (params.get("id") or [""])[0]
+                if not re.fullmatch(r"[\w-]{5,20}", video_id):
+                    raise ApiError("Not a video id.")
+                return self._serve_video(download_short(video_id, lambda m: None))
         except ApiError as exc:
             return json_response(self, {"error": str(exc)}, 400)
         except Exception as exc:
@@ -716,6 +721,19 @@ class UIHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(data)
+
+    def _serve_video(self, path):
+        """Hand a downloaded Short to the browser as a save, in chunks so a
+        large file never sits in memory twice."""
+        size = path.stat().st_size
+        self.send_response(200)
+        self.send_header("Content-Type", "video/mp4")
+        self.send_header("Content-Length", str(size))
+        self.send_header("Content-Disposition",
+                         'attachment; filename="%s"' % path.name)
+        self.end_headers()
+        with path.open("rb") as fh:
+            shutil.copyfileobj(fh, self.wfile, 1024 * 512)
 
 
 class CallbackHandler(BaseHTTPRequestHandler):
