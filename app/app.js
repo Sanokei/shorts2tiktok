@@ -6,6 +6,7 @@ const FIELDS = ["youtube_api_key", "youtube_channel", "tiktok_client_key",
 
 let videos = [];
 let pollTimer = null;
+let currentJob = null;
 
 async function api(path, body) {
   const res = await fetch(path, body ? {
@@ -199,10 +200,12 @@ function updateCount() {
   const n = selected().length;
   $("count").textContent = n ? `${n} selected of ${videos.length}` : `${videos.length} Shorts`;
   $("port").disabled = n === 0;
-  // TikTok caps how many uploads can sit unposted in the inbox at once.
+  // TikTok caps how many uploads can sit unposted in the inbox at once, so a
+  // big selection drips rather than failing. Say so before they press the button.
   if (n > 5 && $("mode").value === "inbox") {
-    notice(`TikTok holds at most 5 unposted uploads per day. Post the earlier ones from
-      your phone before sending more, or the rest of these ${n} will come back rejected.`);
+    notice(`TikTok only holds about 5 unposted uploads at a time. These ${n} will go up
+      a few at a time, pausing until you post some from your phone. Leave the app running
+      and it keeps feeding them in.`);
   } else {
     notice("");
   }
@@ -216,12 +219,21 @@ $("port").addEventListener("click", async () => {
   $("port").disabled = true;
   try {
     const { job } = await api("/api/port", { videos: picked });
+    currentJob = job;
+    $("stop").hidden = false;
     notice(`Porting ${picked.length} video${picked.length > 1 ? "s" : ""}. Keep this window open.`, "warn");
     pollJob(job);
   } catch (err) {
     notice(err.message, "yt");
     $("port").disabled = false;
   }
+});
+
+$("stop").addEventListener("click", async () => {
+  if (!currentJob) return;
+  $("stop").disabled = true;
+  await api("/api/cancel", { job: currentJob });
+  notice("Stopping after the video in flight finishes.", "warn");
 });
 
 function pollJob(id) {
@@ -232,7 +244,7 @@ function pollJob(id) {
       const item = job.items[vid];
       const cell = $("state-" + vid);
       if (!cell) return;
-      cell.className = "state " + ({ done: "ok", error: "err" }[item.status] || "busy");
+      cell.className = "state " + ({ done: "ok", error: "err", stopped: "" }[item.status] || "busy");
       if (item.status === "done" && item.caption) {
         cell.innerHTML = `${escapeHtml(item.message)}<br>
           <button class="ghost copy" data-caption="${escapeHtml(item.caption)}">copy caption</button>`;
@@ -240,11 +252,23 @@ function pollJob(id) {
         cell.textContent = item.message || item.status;
       }
     });
+    const items = Object.values(job.items);
+    const waiting = items.filter((i) => i.status === "waiting").length;
+    const left = items.filter((i) => ["queued", "waiting"].includes(i.status)).length;
+    if (waiting) {
+      notice(`Inbox is full. ${left} still to go. Post some from your phone and this
+        picks up on its own. You can close the app and it resumes next launch.`, "warn");
+    }
     if (job.done) {
       clearInterval(pollTimer);
-      const failed = Object.values(job.items).filter((i) => i.status === "error").length;
-      notice(failed ? `Finished with ${failed} failure${failed > 1 ? "s" : ""}.`
-                    : "All done.", failed ? "yt" : "ok");
+      currentJob = null;
+      $("stop").hidden = true;
+      $("stop").disabled = false;
+      const failed = items.filter((i) => i.status === "error").length;
+      const stopped = items.filter((i) => i.status === "stopped").length;
+      if (failed) notice(`Finished with ${failed} failure${failed > 1 ? "s" : ""}.`, "yt");
+      else if (stopped) notice(`Stopped with ${stopped} left unsent.`, "warn");
+      else notice("All done.", "ok");
       $("port").disabled = false;
     }
   }, 2000);

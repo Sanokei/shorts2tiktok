@@ -60,6 +60,7 @@ DEFAULT_CONFIG = {
     "disable_stitch": False,
     "tokens": {},
     "ported": {},
+    "queue": {},
 }
 
 _cfg_lock = threading.Lock()
@@ -450,6 +451,37 @@ JOBS = {}
 JOB_QUEUE = queue.Queue()
 
 
+def new_job(job_id, videos):
+    return {
+        "id": job_id,
+        "done": False,
+        "cancelled": False,
+        "order": [v["id"] for v in videos],
+        "items": dict((v["id"], {"id": v["id"], "title": v.get("title", ""),
+                                 "status": "queued", "message": "", "caption": "",
+                                 "waits": 0, "log": []}) for v in videos),
+    }
+
+
+def save_queue(job_id, remaining, job):
+    """Keep the unfinished tail on disk so a restart picks the batch back up."""
+    if remaining and not job.get("cancelled"):
+        update_config(queue={"job": job_id, "videos": remaining})
+    else:
+        update_config(queue={})
+
+
+def restore_queue():
+    saved = load_config().get("queue") or {}
+    videos = saved.get("videos") or []
+    if not videos:
+        return
+    job_id = saved.get("job") or secrets.token_hex(8)
+    JOBS[job_id] = new_job(job_id, videos)
+    JOB_QUEUE.put((job_id, videos))
+    print("  resuming %d queued upload(s) from the last run" % len(videos))
+
+
 def run_one(video, entry):
     cfg = load_config()
 
@@ -475,19 +507,60 @@ def run_one(video, entry):
     update_config(ported=ported)
 
 
+# TikTok holds a small number of uploads that the creator has not posted yet.
+# Hitting the ceiling is a queue signal, not a failure: the slot frees as soon
+# as one of them is posted from the phone, so hold position and try again.
+INBOX_FULL = "spam_risk_too_many_pending_share"
+BACKOFF = (120, 300, 600, 1200, 1800)
+
+
+def hold(seconds, job, entry):
+    """Sleep in short steps so Stop and the status display stay responsive."""
+    until = time.time() + seconds
+    while time.time() < until and not job.get("cancelled"):
+        left = int(until - time.time())
+        entry["message"] = ("TikTok inbox is full. Post some from your phone. "
+                            "Retrying in %d:%02d" % (left // 60, left % 60))
+        time.sleep(1)
+
+
 def worker():
     while True:
         job_id, videos = JOB_QUEUE.get()
         job = JOBS[job_id]
-        for video in videos:
+        remaining = list(videos)
+        while remaining and not job.get("cancelled"):
+            video = remaining[0]
             entry = job["items"][video["id"]]
             try:
                 run_one(video, entry)
+                remaining.pop(0)
+                save_queue(job_id, remaining, job)
+                time.sleep(11)  # stay under TikTok's per-minute request ceiling
+            except ApiError as exc:
+                if INBOX_FULL not in str(exc):
+                    entry["status"] = "error"
+                    entry["message"] = str(exc)
+                    remaining.pop(0)
+                    save_queue(job_id, remaining, job)
+                    continue
+                entry["status"] = "waiting"
+                step = BACKOFF[min(entry["waits"], len(BACKOFF) - 1)]
+                entry["waits"] += 1
+                hold(step, job, entry)
             except Exception as exc:
                 entry["status"] = "error"
                 entry["message"] = str(exc)
-            time.sleep(11)  # stay under TikTok's per-minute request ceiling
+                remaining.pop(0)
+                save_queue(job_id, remaining, job)
+        if job.get("cancelled"):
+            for vid in job["order"]:
+                item = job["items"][vid]
+                if item["status"] in ("queued", "waiting"):
+                    item["status"] = "stopped"
+                    item["message"] = "stopped"
         job["done"] = True
+        save_queue(job_id, [], job)
         JOB_QUEUE.task_done()
 
 
@@ -579,16 +652,16 @@ class UIHandler(BaseHTTPRequestHandler):
                 if not videos:
                     raise ApiError("No videos selected.")
                 job_id = secrets.token_hex(8)
-                JOBS[job_id] = {
-                    "id": job_id,
-                    "done": False,
-                    "order": [v["id"] for v in videos],
-                    "items": dict((v["id"], {"id": v["id"], "title": v.get("title", ""),
-                                             "status": "queued", "message": "",
-                                             "caption": "", "log": []}) for v in videos),
-                }
+                JOBS[job_id] = new_job(job_id, videos)
                 JOB_QUEUE.put((job_id, videos))
                 return json_response(self, {"job": job_id})
+            if route == "/api/cancel":
+                job = JOBS.get(body.get("job"))
+                if not job:
+                    raise ApiError("No such batch.")
+                job["cancelled"] = True
+                update_config(queue={})
+                return json_response(self, {"ok": True})
         except ApiError as exc:
             return json_response(self, {"error": str(exc)}, 400)
         except Exception as exc:
@@ -644,6 +717,7 @@ def start_callback_server():
 def main():
     DOWNLOADS.mkdir(exist_ok=True)
     threading.Thread(target=worker, daemon=True).start()
+    restore_queue()
     start_callback_server()
     srv = ThreadingHTTPServer(("127.0.0.1", UI_PORT), UIHandler)
     print("\n  Shorts to TikTok is running at http://127.0.0.1:%d/" % UI_PORT)

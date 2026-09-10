@@ -84,7 +84,9 @@
       <option value="direct">Post directly to my profile</option>
     </select>
     <div class="helpbox" id="h-mode">
-      Inbox mode needs only <code>video.upload</code> and runs inside a sandbox, so no review. The video lands in your TikTok notifications and you pick the caption and the audience when you tap post. Direct mode needs <code>video.publish</code> and a reviewed app, and an unreviewed one forces every post to private.
+      Inbox mode needs only <code>video.upload</code> and runs inside a sandbox, so no review.
+      <p><b>Find them on your phone, not on the web.</b> Open the TikTok mobile app, tap <b>Inbox</b> in the bottom row, open <b>System notifications</b>, and look for <i>Your content is ready</i>. That opens the normal editor where you write the caption, add sound, and post. They will not show up in TikTok Studio or on your profile until you do.</p>
+      <p>Direct mode needs <code>video.publish</code> and a reviewed app, and an unreviewed one forces every post to private.</p>
     </div>
 
     <div id="direct-opts" hidden>
@@ -130,6 +132,7 @@
   <div class="toolbar">
     <button class="primary" id="scan">Find my Shorts</button>
     <button class="primary" id="port" disabled>Port selected</button>
+    <button class="ghost" id="stop" hidden>Stop</button>
     <span class="count" id="count"></span>
     <span class="grow"></span>
     <span class="count" id="detect"></span>

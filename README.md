@@ -42,10 +42,20 @@ you paste the redirect URL out of the address bar instead.
 
 ## Two ways videos land
 
-**Inbox** is the default. The video is uploaded and appears in your TikTok app's
-notification inbox, where you tap through to post it. This needs only the
-`video.upload` scope and works as soon as your developer app exists. TikTok
-allows at most five pending uploads in any 24-hour window.
+**Inbox** is the default. It needs only the `video.upload` scope and works
+inside a TikTok sandbox, so no app review.
+
+To find what it uploaded, open the TikTok **mobile app**, tap **Inbox** in the
+bottom row, open **System notifications**, and look for the message saying your
+content is ready. That opens the normal editor, where you write the caption and
+post. Inbox uploads are not posts yet, so they do not appear in TikTok Studio,
+on the web, or on your profile until you finish them there.
+
+TikTok only holds about five unposted uploads at a time. Past that it answers
+`spam_risk_too_many_pending_share`. The app treats that as a queue signal
+rather than a failure: it holds position, backs off, and retries, so a large
+selection drips in as you clear the earlier ones from your phone. The queue is
+saved to disk, so closing the app and reopening it resumes where it stopped.
 
 **Direct** posts to your profile without touching the phone. This needs the
 `video.publish` scope. Until TikTok audits your developer app, everything it
