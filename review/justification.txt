@@ -1,0 +1,9 @@
+Shorts Porter is a desktop tool a creator runs on their own computer to move their own short videos from their own YouTube channel to their own TikTok account. It has no server and no other users.
+
+Login Kit, user.info.basic: the creator signs in with TikTok so the tool knows which account it holds authorization for, and shows that account before anything is uploaded. No other profile data is read or stored.
+
+Content Posting API, video.upload: the default mode. A selected video is sent to the creator's own inbox, and the creator writes the caption and publishes it inside TikTok.
+
+Content Posting API, video.publish: an optional mode for creators who would rather publish without leaving the desktop. The tool calls creator_info first, shows the audience options TikTok returns, and posts only with the option the creator picked, plus their comment, duet and stitch settings.
+
+Only the signed-in creator's own videos are handled, and nothing is uploaded or posted without an explicit click.

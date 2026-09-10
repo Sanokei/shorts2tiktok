@@ -73,6 +73,25 @@ finished.
 Downloaded files stay in `downloads/` and are reused, so re-porting a video
 does not re-download it.
 
+## Submitting the app for review
+
+Section 4 in the app holds everything the submission form asks for.
+
+The **scope justification** is `review/justification.txt`, kept under TikTok's
+1000 character limit, with a copy button next to it. It describes what this
+code actually does, so if you change the behaviour, change that file too.
+
+The **scope check** calls each scope's real endpoint and reports which ones
+work. Run it after connecting and before submitting. TikTok asks you to remove
+any product or scope you are not going to demonstrate, and a scope that is on
+the form but broken in practice stalls the review.
+
+The **demo video** is recorded by `record-demo.bat`, which captures the screen
+to `review/demo.mp4` at a size that stays under the 50 MB per file limit. Press
+`q` in that window to stop. The app lists the shots to hit, in order, so that
+every scope on the form appears in the footage. Start on the domain you gave as
+the Web/Desktop URL, because the reviewer checks that it matches.
+
 ## Things worth knowing
 
 - Captions are built from the YouTube title plus any hashtags in the

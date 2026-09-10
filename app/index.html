@@ -126,6 +126,51 @@
     <input type="text" id="extra_hashtags" placeholder="#fyp #shorts">
   </fieldset>
 
+  <fieldset>
+    <legend>4 &middot; App review</legend>
+
+    <label>Scope justification
+      <button class="help" data-help="h-just">?</button>
+    </label>
+    <textarea id="justification" readonly rows="7"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost" id="copy-just">Copy justification</button>
+      <span class="count" id="just-count"></span>
+    </div>
+
+    <label>Scope check
+      <button class="help" data-help="h-scopes">?</button>
+    </label>
+    <div class="row">
+      <button class="ghost" id="check-scopes">Check what actually works</button>
+    </div>
+    <div id="scope-report" class="meta" style="margin-top:8px"></div>
+    <div class="helpbox" id="h-scopes">
+      A scope on the submission form that does not work in practice will stall the review, and TikTok asks you to remove anything you are not going to demonstrate. Run this after connecting and before you submit. If a line fails, either add the missing product to your TikTok app or drop that scope from the form.
+    </div>
+    <div class="helpbox" id="h-just">
+      Goes in the box asking you to explain how each product and scope works in your app. It describes what this code actually does, so if you change the behaviour, change this too. The source is <code>review/justification.txt</code>.
+    </div>
+
+    <label>Demo video
+      <button class="help" data-help="h-demo">?</button>
+    </label>
+    <div class="helpbox" id="h-demo">
+      <p>Run <code>record-demo.bat</code> to capture the screen to <code>review/demo.mp4</code>, then press <code>q</code> in that window to stop. It is already sized to stay under the 50 MB limit.</p>
+      <p><b>Every scope on the form has to appear in the footage</b>, so record these in one take:</p>
+      <ol>
+        <li>Open your site at the same domain you gave as the Web/Desktop URL. The reviewer checks that they match.</li>
+        <li>Start this tool and show it opening in the browser.</li>
+        <li>Press <b>Find my Shorts</b> so the YouTube side is visible.</li>
+        <li>Press <b>Connect TikTok</b>. Let TikTok's own consent screen and its list of scopes stay on screen long enough to read. Approve it. This covers Login Kit.</li>
+        <li>Point at the account name that appears top right. This covers <code>user.info.basic</code>.</li>
+        <li>With mode on inbox, select one video and press <b>Port selected</b>. Show it finishing, then show it arriving in TikTok. This covers <code>video.upload</code>.</li>
+        <li>Switch mode to direct, reconnect, select one video, show the privacy dropdown, and press <b>Port selected</b>. Show the post on your profile. This covers <code>video.publish</code>.</li>
+      </ol>
+      <p>Drop any scope you are not going to demonstrate from the submission before sending it, or the review stalls.</p>
+    </div>
+  </fieldset>
+
 </aside>
 
 <main class="main">

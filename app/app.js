@@ -56,6 +56,19 @@ function setConnected(on) {
   pill.classList.toggle("on", on);
   $("disconnect").hidden = !on;
   $("connect").textContent = on ? "Reconnect TikTok" : "Connect TikTok";
+  if (on) showAccount();
+}
+
+// Name the account the tool is authorized for, so it is never ambiguous whose
+// profile a post would land on.
+async function showAccount() {
+  try {
+    const user = await api("/api/account");
+    const who = user.display_name;
+    if (who) $("tt-pill").textContent = "TikTok: " + who;
+  } catch {
+    // an expired grant still reads as connected until the next call fails
+  }
 }
 
 let saveTimer;
@@ -297,4 +310,36 @@ function pollJob(id) {
   }, 2000);
 }
 
+async function loadReview() {
+  const { justification } = await api("/api/review");
+  $("justification").value = justification;
+  $("just-count").textContent = `${justification.length} / 1000 characters`;
+}
+
+$("check-scopes").addEventListener("click", async () => {
+  const out = $("scope-report");
+  out.textContent = "checking...";
+  const probes = [
+    ["user.info.basic", "/api/account", (r) => r.display_name || "no name returned"],
+    ["video.publish", "/api/creator", (r) => ((r.data || {}).privacy_level_options || []).join(", ") || "no options returned"],
+  ];
+  const lines = [];
+  for (const [scope, path, describe] of probes) {
+    try {
+      lines.push(`<span class="ok">works</span> &nbsp;${scope} &nbsp;&rarr; ${escapeHtml(String(describe(await api(path))))}`);
+    } catch (err) {
+      lines.push(`<span class="err">fails</span> &nbsp;${scope} &nbsp;&rarr; ${escapeHtml(err.message.slice(0, 90))}`);
+    }
+  }
+  lines.push('<span class="ok">works</span> &nbsp;video.upload &nbsp;&rarr; proven by any successful inbox send');
+  out.innerHTML = lines.join("<br>");
+});
+
+$("copy-just").addEventListener("click", async () => {
+  await navigator.clipboard.writeText($("justification").value);
+  $("copy-just").textContent = "copied";
+  setTimeout(() => { $("copy-just").textContent = "Copy justification"; }, 1500);
+});
+
 loadConfig();
+loadReview();

@@ -41,6 +41,10 @@ TT_CREATOR_INFO = "https://open.tiktokapis.com/v2/post/publish/creator_info/quer
 TT_INIT_DIRECT = "https://open.tiktokapis.com/v2/post/publish/video/init/"
 TT_INIT_INBOX = "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
 TT_STATUS = "https://open.tiktokapis.com/v2/post/publish/status/fetch/"
+# user.info.basic covers only these. Asking for anything richer, username and
+# follower counts included, fails the whole call with a scope error.
+TT_USER_INFO = ("https://open.tiktokapis.com/v2/user/info/"
+                "?fields=open_id,display_name,avatar_url")
 
 SCOPES_DIRECT = "user.info.basic,video.publish,video.upload"
 SCOPES_INBOX = "user.info.basic,video.upload"
@@ -374,7 +378,16 @@ def tiktok_bearer():
     return {"Authorization": "Bearer " + tokens["access_token"]}
 
 
+def tiktok_account():
+    """Who this authorization belongs to. The only thing user.info.basic is for,
+    and the reason the interface can name the account before it uploads."""
+    data = http_json(TT_USER_INFO, headers=tiktok_bearer())
+    return (data.get("data") or {}).get("user") or {}
+
+
 def tiktok_creator_info():
+    """Posting options for the account. Needs video.publish, so it is only
+    reachable once direct posting has been authorized."""
     return http_json(TT_CREATOR_INFO, method="POST", body={}, headers=tiktok_bearer())
 
 
@@ -618,8 +631,17 @@ class UIHandler(BaseHTTPRequestHandler):
                 cfg["ported_count"] = len(cfg.get("ported", {}))
                 cfg.pop("ported", None)
                 return json_response(self, cfg)
+            if route == "/api/review":
+                text = (ROOT / "review" / "justification.txt")
+                return json_response(self, {
+                    "justification": text.read_text(encoding="utf-8").strip()
+                    if text.exists() else "",
+                    "recorder": str(ROOT / "record-demo.bat"),
+                })
             if route == "/api/shorts":
                 return json_response(self, list_shorts(load_config()))
+            if route == "/api/account":
+                return json_response(self, tiktok_account())
             if route == "/api/creator":
                 return json_response(self, tiktok_creator_info())
             if route == "/api/job":
