@@ -1,0 +1,6 @@
+config.json
+MY-SETUP.md
+.venv/
+downloads/
+__pycache__/
+.wrangler/

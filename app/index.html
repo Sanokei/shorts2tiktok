@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shorts to TikTok</title>
+<link rel="stylesheet" href="/app/style.css">
+</head>
+<body>
+
+<header>
+  <h1><em>Shorts</em> &rarr; <i>TikTok</i></h1>
+  <span class="sub">runs on your machine, no third party in the middle</span>
+  <span class="grow"></span>
+  <span id="tt-pill" class="status-pill">TikTok: not connected</span>
+</header>
+
+<div class="wrap">
+<aside class="rail">
+
+  <fieldset>
+    <legend>1 &middot; YouTube</legend>
+
+    <label>API key
+      <button class="help" data-help="h-yt">?</button>
+    </label>
+    <input type="password" id="youtube_api_key" placeholder="AIza...">
+    <div class="helpbox" id="h-yt">
+      <ol>
+        <li>Open the <a href="https://console.cloud.google.com/projectcreate" target="_blank">Google Cloud console</a> and make a project.</li>
+        <li>Turn on <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">YouTube Data API v3</a> for it.</li>
+        <li>On <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Credentials</a>, choose Create credentials, then API key.</li>
+        <li>Paste it here. It reads public data only, so it never touches your Google password.</li>
+      </ol>
+    </div>
+
+    <label>Channel handle or URL
+      <button class="help" data-help="h-ch">?</button>
+    </label>
+    <input type="text" id="youtube_channel" placeholder="@yourhandle">
+    <div class="helpbox" id="h-ch">
+      A handle like <code>@yourhandle</code>, a channel id starting <code>UC</code>, or any URL of your channel.
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>2 &middot; TikTok</legend>
+
+    <label>Client key
+      <button class="help" data-help="h-tt">?</button>
+    </label>
+    <input type="password" id="tiktok_client_key" placeholder="aw...">
+    <label>Client secret</label>
+    <input type="password" id="tiktok_client_secret" placeholder="stored locally in config.json">
+    <div class="helpbox" id="h-tt">
+      <ol>
+        <li>Sign in at <a href="https://developers.tiktok.com/apps/" target="_blank">developers.tiktok.com/apps</a> and create an app.</li>
+        <li>Add the <b>Login Kit</b> and <b>Content Posting API</b> products to it.</li>
+        <li>On the app page, create a <b>Sandbox</b> and add your own TikTok account to it as a target user. A sandbox works without waiting for TikTok to review the app.</li>
+        <li>Give the sandbox the scopes <code>user.info.basic</code> and <code>video.upload</code>.</li>
+        <li>Under <b>Platforms</b>, tick <b>Desktop</b>, then register a redirect URI on the <b>Desktop</b> tab. Try <code id="redir">http://127.0.0.1:8713/callback</code> first.</li>
+        <li>If the console answers <i>localhost is not supported</i>, it wants a real address. Put any https page you control in the Redirect URI box below and register that same string instead. TikTok will send you there with the code in the address bar, and you paste it back here.</li>
+        <li>Copy the client key and client secret from the app page into the boxes above.</li>
+      </ol>
+      <p><b>The registration form also wants an icon, a description, and two policy URLs.</b> All of that is written out ready to paste in <code>tiktok-app-details.md</code>, with the icon at <code>assets/icon.png</code> and the policy text in <code>docs/</code>.</p>
+      <p><b>Ignore Verify domains.</b> That is only for having TikTok pull a video off a public URL. This app sends the file bytes straight up, so you never host anything.</p>
+      <p>Full review is only needed for direct posting to a public profile. It wants a privacy policy URL, a verified domain, and a demo video, and takes a week or two.</p>
+      <p><a href="https://developers.tiktok.com/doc/content-posting-api-get-started/" target="_blank">Content Posting API guide</a></p>
+    </div>
+
+    <label>Redirect URI
+      <button class="help" data-help="h-redir">?</button>
+    </label>
+    <input type="text" id="redirect_uri" placeholder="http://127.0.0.1:8713/callback">
+    <div class="helpbox" id="h-redir">
+      This must match the string registered on your TikTok app character for character. A loopback address runs the desktop sign-in flow and catches the code automatically. Any other https address runs the web flow, and you finish by pasting the address bar into the box under Connect TikTok.
+    </div>
+
+    <label>Where videos land
+      <button class="help" data-help="h-mode">?</button>
+    </label>
+    <select id="mode">
+      <option value="inbox">TikTok inbox, you tap post in the app</option>
+      <option value="direct">Post directly to my profile</option>
+    </select>
+    <div class="helpbox" id="h-mode">
+      Inbox mode needs only <code>video.upload</code> and runs inside a sandbox, so no review. The video lands in your TikTok notifications and you pick the caption and the audience when you tap post. Direct mode needs <code>video.publish</code> and a reviewed app, and an unreviewed one forces every post to private.
+    </div>
+
+    <div id="direct-opts" hidden>
+      <label>Privacy</label>
+      <select id="privacy_level">
+        <option value="SELF_ONLY">Only me</option>
+        <option value="FOLLOWER_OF_CREATOR">Followers</option>
+        <option value="MUTUAL_FOLLOW_FRIENDS">Friends</option>
+        <option value="PUBLIC_TO_EVERYONE">Everyone</option>
+      </select>
+      <div class="checkline"><input type="checkbox" id="disable_comment"> turn off comments</div>
+      <div class="checkline"><input type="checkbox" id="disable_duet"> turn off duet</div>
+      <div class="checkline"><input type="checkbox" id="disable_stitch"> turn off stitch</div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="ghost" id="connect">Connect TikTok</button>
+      <button class="ghost" id="disconnect" hidden>Disconnect</button>
+    </div>
+    <div class="helpbox" id="h-paste">
+      Browser did not come back on its own? Copy the whole address bar from the page TikTok sent you to and paste it here.
+      <input type="text" id="pasted" placeholder="http://127.0.0.1:8713/callback?code=..." style="margin-top:8px">
+      <button class="ghost" id="paste-go" style="margin-top:8px">Finish sign-in</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>3 &middot; Caption</legend>
+    <label>Template
+      <button class="help" data-help="h-cap">?</button>
+    </label>
+    <textarea id="caption_template">{title} {tags}</textarea>
+    <div class="helpbox" id="h-cap">
+      Use <code>{title}</code>, <code>{tags}</code> for hashtags found in the YouTube description, and <code>{description}</code>. TikTok cuts captions at 2200 characters.
+    </div>
+    <label>Always add these hashtags</label>
+    <input type="text" id="extra_hashtags" placeholder="#fyp #shorts">
+  </fieldset>
+
+</aside>
+
+<main class="main">
+  <div class="toolbar">
+    <button class="primary" id="scan">Find my Shorts</button>
+    <button class="primary" id="port" disabled>Port selected</button>
+    <span class="count" id="count"></span>
+    <span class="grow"></span>
+    <span class="count" id="detect"></span>
+  </div>
+  <div id="notice"></div>
+  <div id="list"><div class="empty">Fill in the two sets of keys, then find your Shorts.</div></div>
+</main>
+</div>
+
+<script src="/app/app.js"></script>
+</body>
+</html>

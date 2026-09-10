@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shorts Porter</title>
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="shell">
+
+<nav>
+  <span class="brand"><em>Shorts</em> &rarr; <i>Porter</i></span>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+</nav>
+
+<h1>Shorts Porter</h1>
+<p class="lede">A desktop tool for moving your own short videos from your own YouTube channel to your own TikTok account.</p>
+
+<p>It runs on the machine of the person who installed it. There is no hosted service, no account to create, and nothing in the request path between you and the two platforms. This page exists because both platforms ask an application to publish a policy before they will issue it credentials.</p>
+
+<h2>How it works</h2>
+<ol>
+  <li>It reads the list of Shorts on your channel through the YouTube Data API, using an API key you created.</li>
+  <li>You pick which ones to move.</li>
+  <li>It downloads those videos and uploads them to your TikTok account through the Content Posting API.</li>
+  <li>Each upload lands in your own TikTok inbox. You write the caption and publish from inside the TikTok app.</li>
+</ol>
+
+<h2>What it does not do</h2>
+<ul>
+  <li>It does not publish anything on its own. A person completes every post.</li>
+  <li>It does not touch accounts other than the one that signed in.</li>
+  <li>It does not send data anywhere except Google and TikTok.</li>
+  <li>It does not collect analytics, and it has no server to collect them with.</li>
+</ul>
+
+<h2>Credentials</h2>
+<p>Keys and tokens live in a single file on the operator's own disk. Deleting the folder deletes them. Access can be withdrawn at any time from the connected apps list in TikTok's own settings.</p>
+
+<footer>
+  <a href="/privacy">Privacy policy</a> &middot; <a href="/terms">Terms of service</a>
+</footer>
+
+</div>
+</body>
+</html>

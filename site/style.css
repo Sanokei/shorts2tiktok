@@ -1,0 +1,103 @@
+:root {
+  --bg: #0e0f11;
+  --panel: #16181c;
+  --line: #2a2e36;
+  --text: #e8e6e3;
+  --body: #c7c5c2;
+  --muted: #8b8f96;
+  --coral: #ff4d3d;
+  --cyan: #25f4ee;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.shell { max-width: 660px; margin: 0 auto; padding: 48px 24px 90px; }
+
+nav {
+  display: flex;
+  gap: 22px;
+  align-items: baseline;
+  padding-bottom: 18px;
+  margin-bottom: 44px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+nav .brand { font-weight: 650; margin-right: auto; letter-spacing: -0.01em; }
+nav .brand em { font-style: normal; color: var(--coral); }
+nav .brand i { font-style: normal; color: var(--cyan); }
+nav a { color: var(--muted); text-decoration: none; }
+nav a:hover { color: var(--text); }
+
+h1 { font-size: 29px; line-height: 1.2; letter-spacing: -0.022em; margin: 0 0 10px; }
+h2 {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 40px 0 10px;
+}
+p, li { color: var(--body); }
+li { margin-bottom: 7px; }
+a { color: var(--cyan); }
+.lede { font-size: 18px; color: var(--text); margin-bottom: 34px; }
+.updated { color: var(--muted); font-size: 13px; font-family: var(--mono); margin: 0 0 34px; }
+
+code {
+  font: 13.5px var(--mono);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 1px 6px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 22px;
+  margin: 26px 0;
+}
+
+.urlbox {
+  width: 100%;
+  font: 13px/1.55 var(--mono);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  min-height: 96px;
+  resize: vertical;
+}
+
+button {
+  margin-top: 12px;
+  background: var(--coral);
+  color: #170a08;
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 17px;
+  font: 500 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+button:hover { filter: brightness(1.08); }
+.bad { color: var(--coral); }
+
+footer {
+  margin-top: 66px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}

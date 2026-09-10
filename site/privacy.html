@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · Shorts Porter</title>
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="shell">
+
+<nav>
+  <span class="brand"><a href="/" style="color:inherit;text-decoration:none"><em>Shorts</em> &rarr; <i>Porter</i></a></span>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+</nav>
+
+<h1>Privacy Policy</h1>
+<p class="updated">Last updated 9 September 2026</p>
+
+<h2>What this software is</h2>
+<p>Shorts Porter is a personal tool that runs on the computer of the person who installed it. It copies that person's own short videos from their own YouTube channel to their own TikTok account. It has one user, who is also its operator.</p>
+
+<h2>What it collects</h2>
+<p>Nothing. There is no server, no analytics, no telemetry, and no account. Neither the author nor any third party receives data from an installation.</p>
+
+<h2>What it stores, and where</h2>
+<p>The tool writes a single file, <code>config.json</code>, into its own folder on the user's disk. That file holds:</p>
+<ul>
+  <li>a YouTube Data API key the user created</li>
+  <li>the user's YouTube channel handle</li>
+  <li>a TikTok client key and client secret the user created</li>
+  <li>the TikTok access and refresh tokens returned by TikTok sign-in</li>
+  <li>a record of which videos have already been copied</li>
+</ul>
+<p>Downloaded video files are written to a <code>downloads</code> folder in the same place. All of it stays on the user's machine. Deleting the folder deletes everything the tool has stored.</p>
+
+<h2>What it sends, and to whom</h2>
+<p>The tool contacts exactly two services, both on the user's behalf and both with credentials the user supplied:</p>
+<ul>
+  <li><b>Google</b>, to read the public video list and metadata of the user's own YouTube channel, and to fetch the user's own video files.</li>
+  <li><b>TikTok</b>, to sign the user in and to upload the user's own video files to the user's own TikTok account.</li>
+</ul>
+<p>No data is sent anywhere else. There is no intermediate service.</p>
+
+<h2>TikTok data</h2>
+<p>The tool requests the <code>user.info.basic</code> and <code>video.upload</code> scopes. It uses the first to confirm which account is connected, and the second to place videos in the account owner's own TikTok inbox, where the account owner completes and publishes the post themselves. The tool does not read other users' content and has no access to anyone but the person who signed in.</p>
+<p>Access can be withdrawn at any time from TikTok's own settings, under the list of connected apps. Deleting <code>config.json</code> removes the stored tokens locally.</p>
+
+<h2>Children</h2>
+<p>The tool is a developer utility for a person managing their own publishing accounts. It is not directed at children.</p>
+
+<h2>Changes</h2>
+<p>Any change to this policy is a change to this page, and the wording above carries the date it last changed.</p>
+
+<h2>Contact</h2>
+<p>Raise an issue on the source repository.</p>
+
+<footer><a href="/">Back to the overview</a></footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign-in callback · Shorts Porter</title>
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="shell">
+
+<nav>
+  <span class="brand"><a href="/" style="color:inherit;text-decoration:none"><em>Shorts</em> &rarr; <i>Porter</i></a></span>
+  <a href="/privacy">Privacy</a>
+  <a href="/terms">Terms</a>
+</nav>
+
+<h1 id="head">Finishing sign-in</h1>
+<p class="lede" id="lede">Copy the line below and paste it into the Connect panel in the app.</p>
+
+<div class="card">
+  <textarea class="urlbox" id="url" readonly></textarea>
+  <button id="copy">Copy</button>
+</div>
+
+<p id="note">Nothing here is stored or sent anywhere. This page only reads what is already in your address bar so you can move it across to the tool running on your machine.</p>
+
+<footer><a href="/">Back to the overview</a></footer>
+
+<script>
+const params = new URLSearchParams(location.search);
+const box = document.getElementById("url");
+const err = params.get("error_description") || params.get("error");
+
+if (params.get("code")) {
+  box.value = location.href;
+} else if (err) {
+  document.getElementById("head").textContent = "TikTok refused the sign-in";
+  document.getElementById("head").className = "bad";
+  document.getElementById("lede").textContent = "No authorization code came back. TikTok said:";
+  box.value = err;
+} else {
+  document.getElementById("head").textContent = "Nothing to finish";
+  document.getElementById("lede").textContent =
+    "Open this page from the app's Connect TikTok button rather than directly.";
+  box.value = "";
+}
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const btn = document.getElementById("copy");
+  try {
+    await navigator.clipboard.writeText(box.value);
+    btn.textContent = "Copied";
+  } catch {
+    box.select();
+    btn.textContent = "Press Ctrl+C";
+  }
+  setTimeout(() => { btn.textContent = "Copy"; }, 1800);
+});
+</script>
+
+</div>
+</body>
+</html>
